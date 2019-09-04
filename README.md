@@ -12,7 +12,7 @@ Run 5 threads to stress CPU.
 </p>
 
 
-Run 2 threads and stick the former to core 0, the latter to core 4
+Run 2 threads and stick the former to core 0, the latter to core 3.
 > ./stresspp --cpu-affinity 1000,0001
 <p align="center">
 <img src="docs/stress_cpu_1.png?raw=true">
@@ -20,7 +20,7 @@ Run 2 threads and stick the former to core 0, the latter to core 4
 
 
 ### Virtual Memory
-Run 9 threads which are allocating and deallocating 2 x 500Mb chunks on a 16Gig RAM machine.
+Run 9 threads which are allocating and deallocating 2 x 500Mb chunks. (screen on a 16Gig RAM machine)
 > ./stresspp -m 9 --vm-chunks 2 --vm-bytes 536870912
 
 <p align="center">
@@ -29,14 +29,14 @@ Run 9 threads which are allocating and deallocating 2 x 500Mb chunks on a 16Gig 
 
 
 ### I/O
-Run 2 threads stressing I/O with sync()
+Run 2 threads stressing I/O with sync().
 > ./stresspp -i 2
 
 ### Disk
 Run a thread continuously writing and deleting 1Gb file.
-> ./stresspp -d 0
+> ./stresspp -d 1
 
-### Allowed Options
+### Complete list of allowed options
 ```
 Allowed options:
   -h, --help                     Produce help message
@@ -56,6 +56,13 @@ Allowed options:
 ## Write your own script
 Instead of using command-line you can write your own script:
 ```cpp
+#include "StressPP.h"
+void sleep(int i);
+
+using namespace std;
+
+int main(int argc, char **argv) {
+
     int howManyCpuWorkers = 3;
     StressPP stressPP(howManyCpuWorkers); // Instantiates StressPP with 3 stress-cpu threads ready to start.
 
@@ -103,4 +110,6 @@ Instead of using command-line you can write your own script:
 
     //We could have stopped 'em all with just:
     stressPP.stop();
+    return 0;
+}
 ```
