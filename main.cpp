@@ -99,6 +99,7 @@ int main(int argc, char **argv) {
         sleep(timeout_seconds->value() * 1000);
         stressPP.stop();
     }
+
 }
 
 void sleep(int ms) {
