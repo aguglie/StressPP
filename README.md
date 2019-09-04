@@ -7,13 +7,26 @@ With Stress*PP* you can pressure on disk i/o, memory and cpu.
 
 Run 5 threads to stress CPU.
 > ./stresspp -c 5
+<p align="center">
+<img src="docs/stress_cpu_0.png?raw=true">
+</p>
+
 
 Run 2 threads and stick the former to core 0, the latter to core 4
 > ./stresspp --cpu-affinity 1000,0001
+<p align="center">
+<img src="docs/stress_cpu_1.png?raw=true">
+</p>
+
 
 ### Virtual Memory
 Run 9 threads which are allocating and deallocating 2 x 500Mb chunks on a 16Gig RAM machine.
 > ./stresspp -m 9 --vm-chunks 2 --vm-bytes 536870912
+
+<p align="center">
+<img src="docs/stress_vm_0.png?raw=true">
+</p>
+
 
 ### I/O
 Run 2 threads stressing I/O with sync()
