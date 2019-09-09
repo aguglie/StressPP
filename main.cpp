@@ -44,32 +44,41 @@ int main(int argc, char **argv) {
                                           "spawn n threads spinning on sqrt(). You can omit this option if using --cpu-affinity.",
                                           0);
     auto cpu_aff_matrix = op.add<Value<string>>("", "cpu-affinity",
-                                                "Cpu Affinity Matrix to stick a thread to a CPU. Rows are threads, cols are CPUs, comma separated. Ex: 1000,0100,0010,0001",
+                                                "Cpu Affinity Matrix to stick a thread to a CPU. Rows are threads, cols are CPUs, comma separated. Ex: 1000,0100,0010,0001\nYou can also set this via env 'CPU_AFFINITY'",
                                                 "");
     op.parse(argc, argv);
 
+
+    //If CPU_AFFINITY env is set use it as param.
+    if (const char *env_p = std::getenv("CPU_AFFINITY"))
+        cpu_aff_matrix->set_value(env_p);
+
+    //If no useful param was provided show help.
     if (!malloc_howMany->is_set() && !disk_howMany->is_set() && !io_howMany->is_set() &&
         (!cpu_howMany->is_set() && !cpu_aff_matrix->is_set())) {
         cout << op << "\n";
         return 0;
     }
 
-    //CPU
-    //Get rows of the affinity matrix:
-    vector<string> v;
-    split(cpu_aff_matrix->value(), ',', v);
+    //CPU part:
 
-    // Create a StessPP instance with how many CPU threads as Math.max(Matrix Rows, cpu_howMany)
-    int cpu_howManyWorkers = (v.size() > cpu_howMany->value() && cpu_aff_matrix->is_set()) ? v.size()
-                                                                                           : cpu_howMany->value();
-    StressPP stressPP(cpu_howManyWorkers);
+    //Split rows of the affinity matrix:
+    vector<string> cpu_aff_matrix_rows;
+    split(cpu_aff_matrix->value(), ',', cpu_aff_matrix_rows);
 
-    //Foreach row set the thread affinity.
+    // Calculate how many CPU threads are needed as Math.max(Cpu Affinity Rows, cpu_howMany)
+    int cpu_howManyWorkers = (cpu_aff_matrix_rows.size() > cpu_howMany->value() && cpu_aff_matrix->is_set())
+                             ? cpu_aff_matrix_rows.size() // Rows of the affinity matrix (if present)
+                             : cpu_howMany->value(); // Value passed via '-c' param.
+
+    StressPP stressPP(cpu_howManyWorkers); // Create a new StressPP instance with given threads.
+
+    //If the affinity matrix is present, set for each thread its affinity.
     if (cpu_aff_matrix->is_set())
-        for (int threadRow = 0; threadRow < v.size(); ++threadRow) {
-            cout << "Affinity row " << threadRow << ": " << v[threadRow] << '\n';
-            for (std::string::size_type cpuColumn = 0; cpuColumn < v[threadRow].size(); ++cpuColumn) {
-                if (v[threadRow][cpuColumn] == '1') {
+        for (int threadRow = 0; threadRow < cpu_aff_matrix_rows.size(); ++threadRow) {
+            cout << "Affinity row " << threadRow << ": " << cpu_aff_matrix_rows[threadRow] << '\n';
+            for (std::string::size_type cpuColumn = 0; cpuColumn < cpu_aff_matrix_rows[threadRow].size(); ++cpuColumn) {
+                if (cpu_aff_matrix_rows[threadRow][cpuColumn] == '1') {
                     stressPP.getStressCpuThreads()->at(threadRow).addAffinity(cpuColumn);
                 }
             }
@@ -79,7 +88,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i < cpu_howManyWorkers; i++)
         stressPP.getStressCpuThreads()->at(i).start();
 
-    //  / CPU
+    //  / End of CPU part.
 
 
     //Stress disk if required.
@@ -102,11 +111,20 @@ int main(int argc, char **argv) {
 
 }
 
+/**
+ * Sleep utility.
+ */
 void sleep(int ms) {
     this_thread::sleep_for(chrono::milliseconds(ms));
 }
 
 
+/**
+ * Utility to split string.
+ * @param s string to split
+ * @param c delimiter
+ * @param v vector of tokens.
+ */
 void split(const string &s, char c, vector<string> &v) {
     string::size_type i = 0;
     string::size_type j = s.find(c);

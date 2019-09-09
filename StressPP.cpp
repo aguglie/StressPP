@@ -15,6 +15,7 @@ StressPP::~StressPP() {
 }
 
 StressPP::StressPP() :
+//If no value default to number of cpu threads.
         StressPP(std::thread::hardware_concurrency()) {
 }
 

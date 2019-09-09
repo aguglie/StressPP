@@ -17,8 +17,8 @@ public:
 private:
     volatile bool _running = false;
     std::thread _thread;
-    cpu_set_t _cpuset;
-    int _myId;
+    cpu_set_t _cpuset; // Affinity set.
+    int _myId; // Debugging purpose.
 public:
     StressCpuThread();
 

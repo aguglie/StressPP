@@ -32,15 +32,22 @@ void StressCpuThread::start() {
     }
 }
 
+/**
+ * Note: Resets affinity matrix to all zeros but does not apply it.
+ */
 void StressCpuThread::resetAffinity() {
     CPU_ZERO(&_cpuset);
 }
 
+/**
+ * Adds affinity to a physical thread.
+ * @param cpuId
+ */
 void StressCpuThread::addAffinity(unsigned int cpuId) {
     unsigned num_cpus = std::thread::hardware_concurrency();
 
     if (cpuId > num_cpus) {
-        std::cerr << "Please choose a core between 0 and " << (num_cpus - 1) << "\n";
+        std::cerr << "Please choose a physical thread between 0 and " << (num_cpus - 1) << "\n";
         return;
     }
 
