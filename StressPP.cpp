@@ -7,6 +7,8 @@
 #include <thread>
 #include <vector>
 #include <zconf.h>
+#include <random>
+
 #include "StressPP.h"
 
 //On destruction, stop every running thread.
@@ -78,29 +80,50 @@ void StressPP::mallocStress(int howManyThreads, int vmChunks, long long vmBytes)
     for (int i = 0; i < howManyThreads; i++)
         _mallocThreads.push_back(std::thread([this, vmChunks, vmBytes]() {
             long long j, k;
-            int retval = 0;
-            char **ptr;
+            int *ptr[vmChunks];
 
+            unsigned long long bytesToAllocate = (vmBytes / sizeof(int)) * sizeof(int);
+            unsigned long long howManyInts = (vmBytes / sizeof(int));
+
+            std::cout << "Allocating " << bytesToAllocate << " bytes\n";
+
+            //ALLOCATE
+            for (j = 0; j < vmChunks; j++) {
+                ptr[j] = (int *) calloc(howManyInts, sizeof(int));
+
+                if (ptr[j] == NULL) {
+                    std::cerr << "malloc failed..." << "\n";
+                } else {
+                    for (k = 0; k < howManyInts; k++) {
+                        ptr[j][k] = (int) k + 1;
+                    }
+                }
+            }
+
+            //Create a vector of random keys we'll access:
+            std::random_device rd; // obtain a random number from hardware
+            std::mt19937 eng(rd()); // seed the generator
+            std::uniform_int_distribution<> distr(0, howManyInts); // define the range
+
+            int keysToAccess[50000];
+            for (int i = 0; i < 50000; i++) {
+                keysToAccess[i] = distr(eng);
+            }
+
+            //Generate Random Access
             while (_stressingMalloc) {
-                ptr = (char **) malloc(vmChunks * sizeof(int));
-                for (j = 0; vmChunks == 0 || j < vmChunks; j++) {
-                    if ((ptr[j] = (char *) malloc(vmBytes * sizeof(char)))) {
-                        for (k = 0; k < vmBytes; k++)
-                            ptr[j][k] = 'Z';    /* Ensure that COW happens.  */
-                    } else {
-                        ++retval;
-                        std::cerr << "malloc failed, waiting then retrying..." << "\n";
-                        usleep(10000);
-                        continue;
+                for (k = 0; k < 50000; k++)
+                    for (j = 0; j < vmChunks; j++) {
+                        ptr[j][keysToAccess[k]]++;
                     }
-                }
-                if (retval == 0) {
-                    for (j = 0; vmChunks == 0 || j < vmChunks; j++) {
-                        free(ptr[j]);
-                    }
-                    free(ptr);
-                    continue;
-                }
+                usleep(100);
+            }
+
+
+            //DEALLOCATE
+            for (j = 0; j < vmChunks; j++) {
+                if (ptr[j] != NULL)
+                    free(ptr[j]);
             }
         }));
     std::cout << "Created " << howManyThreads << " new threads stressing Virtual Memory malloc" << "\n";
@@ -127,7 +150,7 @@ void StressPP::writeStress(int howManyThreads, bool clean, long long files, long
 
             while (_stressingWrite) {
                 for (i = 0; i < files; i++) {
-                    char name[] = "/tmp/stress.XXXXXX";
+                    char name[] = "./stress.XXXXXX";
 
                     if ((fd = mkstemp(name)) < 0) {
                         perror("mkstemp");
