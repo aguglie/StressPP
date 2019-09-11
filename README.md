@@ -7,8 +7,8 @@ With Stress*PP* you can pressure on disk i/o, memory and cpu.
 ## TLDR; Examples:
 ### CPU
 
-Run 5 threads to stress CPU.
-> ./stresspp -c 5
+Run 4 threads to stress CPU.
+> ./stresspp -c 4
 <p align="center">
 <img src="docs/stress_cpu_0.png?raw=true">
 </p>
@@ -22,8 +22,8 @@ Run 2 threads and stick the former to core 0, the latter to core 3.
 
 
 ### Virtual Memory
-Run 9 threads which are allocating and randomly accessing 2 x 500Mb chunks. 
-> ./stresspp -m 9 --vm-chunks 2 --vm-bytes 536870912
+Run 2 threads which are allocating and randomly accessing 2 x 2 x 500Mb chunks. 
+> ./stresspp -m 2 --vm-chunks 2 --vm-bytes 536870912
 
 
 ### I/O
