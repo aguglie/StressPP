@@ -2,9 +2,9 @@
 StessPP is a synthetic workload generator based on [stress](https://linux.die.net/man/1/stress).
 With Stress*PP* you can pressure on disk i/o, memory and cpu.
 
-For more informations access the "Presentation.pdf" in docs
+## Link to the presentation [here](https://raw.githubusercontent.com/Guglio95/StressPP/master/docs/Presentation.pdf)
 
-## Examples
+## TLDR; Examples:
 ### CPU
 
 Run 5 threads to stress CPU.
