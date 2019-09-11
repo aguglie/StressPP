@@ -8,6 +8,7 @@
 
 #include <thread>
 #include <vector>
+#include <mutex>
 
 
 class StressCpuThread {
@@ -19,6 +20,7 @@ private:
     std::thread _thread;
     cpu_set_t _cpuset; // Affinity set.
     int _myId; // Debugging purpose.
+    std::mutex _rand_mutex;  // protects rand() used in threads.
 public:
     StressCpuThread();
 

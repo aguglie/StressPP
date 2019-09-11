@@ -24,7 +24,13 @@ void StressCpuThread::start() {
     if (!_running) {
         std::cout << "Starting StressCpuThread(), ID=" << _myId << "\n";
         _thread = std::thread([this] {
-            volatile double d = rand();
+            volatile double d;
+            {
+                std::lock_guard<std::mutex> lock(_rand_mutex);
+
+                //rand() is not assured to be thread-safe; it depends on implem.
+                d = rand();
+            }
             while (_running) {
                 d = sqrt(d);
             }
