@@ -7,8 +7,9 @@
 #include <chrono>
 #include <thread>
 #include <cmath>
+#include <atomic>
 
-static int counter = 0;
+static std::atomic_int counter = 0;
 
 StressCpuThread::~StressCpuThread() {
     stop();
@@ -16,16 +17,16 @@ StressCpuThread::~StressCpuThread() {
 
 StressCpuThread::StressCpuThread() {
     resetAffinity();
-    _myId = counter++;
+    _myId = counter.fetch_add(1);
 }
 
 void StressCpuThread::start() {
     if (!_running) {
         std::cout << "Starting StressCpuThread(), ID=" << _myId << "\n";
         _thread = std::thread([this] {
-            volatile double d;
+            volatile double d = rand();
             while (_running) {
-                d = sqrt(rand());
+                d = sqrt(d);
             }
         });
         _running = true;
